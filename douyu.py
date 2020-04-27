@@ -138,9 +138,40 @@ def get_url_from_js(rid):
         real_url = '直播间未开播或不存在'
     return "http://tx2play1.douyucdn.cn/live/" + real_url + ".flv?uuid="
 
+def main():
+    rid = input('请输入斗鱼数字房间号：\n')
+    real_url = get_real_url(rid)
+    print('该直播间地址为：\n' + real_url)
 
-rid = input('请输入斗鱼数字房间号：\n')
-real_url = get_real_url(rid)
-print('该直播间地址为：\n' + real_url)
+    # print(get_url_from_js('85894'))
 
-# print(get_url_from_js('85894'))
+if __name__ == '__main__':
+    while True:
+        try:
+            res_f = requests.get(url='https://www.douyu.com/gapi/rkc/directory/0_0/1', timeout=5).json()
+            live_page = res_f.get('data').get('pgcnt')
+            print('page count: %d' % live_page)
+            
+            code = res_f.get('code')
+            msg = res_f.get('msg')
+            if code == 0:
+                rl = res_f.get('data').get('rl') # room list
+                show_cnt = 10
+                for room in rl:
+                    room_id = room.get('rid')
+                    room_name = room.get('rn')
+                    play_url = get_url_from_js(room_id)
+                    if '直播间未开播或不存在' in play_url:
+                        continue
+                        
+                    print('%d %s %s' % (room_id, room_name, play_url))
+                    show_cnt -= 1
+                    
+                    if show_cnt < 0:
+                        break
+                #res_l = requests.get(url='https://www.douyu.com/gapi/rkc/directory/0_0/' + str(live_page), timeout=5).json()
+                break
+                
+            print('failed to get room info: %s' % msg)
+        except requests.exceptions.RequestException:
+            print(get_tt() + ' DOUYU HTTP ERROR AND RETRY')
