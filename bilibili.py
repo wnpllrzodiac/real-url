@@ -34,7 +34,35 @@ def get_real_url(rid):
         real_url = '未开播或直播间不存在'
     return real_url
 
-
-rid = input('请输入bilibili房间号：\n')
-real_url = get_real_url(rid)
-print('该直播间源地址为：\n' + real_url)
+def get_cat():
+    # https://api.live.bilibili.com/room/v1/area/getList?parent_id=6
+    pass
+    
+def get_rooms():
+    rooms = []
+    
+    roomlist_url = 'https://api.live.bilibili.com/room/v3/area/getRoomList?platform=web&parent_area_id=6&cate_id=0&area_id=0&sort_type=sort_type_150&page=1&page_size=30&tag_version=1'
+    response = requests.get(url=roomlist_url).json()
+    data = response.get('data', 0)
+    if data:
+        count = data.get('count', 0)
+        list = data.get('list', 0)
+        if list:
+            for r in list:
+                roomid = r['roomid']
+                uid = r['uid']
+                title = r['title']
+                uname = r['uname']
+                online = r['online']
+                
+                print('room %d, uid %d, %s(%s) online: %d, url %s' % (roomid, uid, title, uname, online, get_real_url(roomid)))
+                
+                rooms.append(roomid)
+                
+    return rooms;
+    
+r = get_rooms()
+if len(r) == 0:
+    rid = input('请输入bilibili房间号：\n')
+    real_url = get_real_url(rid)
+    print('该直播间源地址为：\n' + real_url)
