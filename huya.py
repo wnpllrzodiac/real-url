@@ -8,8 +8,31 @@ import base64
 import urllib.parse
 import hashlib
 import time
+import json
 
-
+def get_rooms():
+    url = 'https://www.huya.com/cache.php?m=LiveList&do=getLiveListByPage&tagAll=0&page=2'
+    
+    rooms = []
+    response = requests.get(url)
+    response.encoding = 'utf-8'
+    assert response.status_code == 200  # 断言一下状态码是200
+    json_dict = json.loads(response.text)  # 把响应的json数据转换成python的字典
+    infos = json_dict['data']['datas']   # 每一页的直播间数据全在这里面，一共120个
+    for info in infos:
+        item = {}
+        item['标题'] = info['introduction']
+        item['类型'] = info['gameFullName']
+        item['主播'] = info['nick']
+        item['网址'] = 'https://www.huya.com/' + info['profileRoom']
+        item['人气'] = info['totalCount']
+        item['rid']  = info['profileRoom']
+        
+        #print(item)
+        rooms.append(item)
+        
+    return rooms
+    
 def live(e):
     i, b = e.split('?')
     r = i.split('/')
@@ -52,8 +75,18 @@ def get_real_url(room_id):
         real_url = '未开播或直播间不存在'
     return real_url
 
-
-rid = input('请输入虎牙房间号：\n')
-real_url = get_real_url(rid)
-print('该直播间源地址为：')
-print(real_url)
+rooms = get_rooms()
+if rooms != None and len(rooms) > 0:
+    for i in range(0,5):
+        if i < len(rooms):
+            r = rooms[i]
+            rid = r['rid']
+            real_url = get_real_url(rid)
+            print('room #%s, %s, url: %s' % (r['标题'], rid, real_url[0]))
+        else:
+            break
+            
+#rid = input('请输入虎牙房间号：\n')
+#real_url = get_real_url(rid)
+#print('该直播间源地址为：')
+#print(real_url)

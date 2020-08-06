@@ -59,7 +59,7 @@ def get_rooms():
                 
                 rooms.append(roomid)
                 
-    return rooms;
+    return rooms
     
 r = get_rooms()
 if len(r) == 0:
