@@ -2,7 +2,8 @@
 # 默认最高画质
 import requests
 import json
-
+import re
+from lxml import etree
 
 def acfun(rid):
     headers = {
@@ -41,5 +42,24 @@ def acfun(rid):
 
 
 if __name__ == '__main__':
-    r = input('输入AcFun直播间号：\n')
-    print(acfun(r))
+    url = 'https://live.acfun.cn/?ft=1&fi=1'
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:79.0) Gecko/20100101 Firefox/79.0'
+    }
+    html = requests.get(url=url, headers=headers).text
+    
+    selector = etree.HTML(html)
+    upinfos = selector.xpath("//div[@class='up-info']//h1[@class='list-content-title']/a")
+    for upinfo in upinfos:
+        url = upinfo.xpath("./@href")[0]
+        title = upinfo.xpath("./@title")[0]
+        
+        # /live/36172619
+        match = re.match(r'/live/(\d+)', url)
+        if match:
+            rid = match.group(1)
+            play_url = acfun(rid)
+            print(url, rid, title, play_url)
+    
+    #r = input('输入AcFun直播间号：\n')
+    #print(acfun(r))
